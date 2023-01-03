@@ -1,3 +1,4 @@
+import axios from "axios";
 import React, { useState } from "react";
 
 const ListItem = React.memo(({ todoData, setTodoData, item, deleteClick }) => {
@@ -29,22 +30,40 @@ const ListItem = React.memo(({ todoData, setTodoData, item, deleteClick }) => {
   const toggleClick = (id) => {
     // map 을 통해서 todoData의 complete 를 업데이트 해보자
     const updateTodo = todoData.map((item) => {
+      // 현재 item.id에 해당하는 것만 업데이트 한다.
       if (item.id === id) {
         item.completed = !item.completed;
       }
       return item;
     });
+
+    let body = {
+      id: todoId,
+      completed: item.completed,
+      // 위에서 내려받은 item
+    };
     // axios를 이용해서 mongoDB comlplete 업데이트
-    setTodoData(updateTodo);
+    // then() :  서버에서 회신(응답)이 왔을 때 처리
+    // catch() : 서버에서  응답이 없을 때
+    axios
+      .post("/api/post/updatetoggle", body)
+      // body는 데이터 보내주고 밑에 then은 응답을 기다리는 것.
+      .then((response) => {
+        // console.log(response);
+        setTodoData(updateTodo);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  
 
     // 로컬에 저장(DB 저장)
-    localStorage.setItem("todoData", JSON.stringify(updateTodo));
+    // localStorage.setItem("todoData", JSON.stringify(updateTodo));
   };
 
   // 현재 item.id에 해당하는 것만 업데이트 한다 ==> 해당하는 id 하나만 갱신해야해
   const todoId = item.id;
   const updateTitle = () => {
-    
     // 공백 문자열 제거 추가
     let str = editedTitle;
     str = str.replace(/^\s+|\s+$/gm, "");
@@ -63,14 +82,31 @@ const ListItem = React.memo(({ todoData, setTodoData, item, deleteClick }) => {
       }
       return item;
     });
+
+
+
+    let body = {
+      id: todoId,
+      title:editedTitle,
+      // title: item.title,
+   };
     // 데이터 갱신
     // axios를 이용해서 mongoDB 단어를 업데이트
-    setTodoData(tempTodo);
-    // 로컬에 저장(DB 저장)
-    localStorage.setItem("todoData", JSON.stringify(tempTodo));
-    // 목록창으로 이동
+    axios.post("/api/post/updatetitle", body)
+    .then((response)=>{
+      // 응답 결과 출력
+      console.log(response.data)
+      setTodoData(tempTodo);
+      // 목록창으로 이동
     setIsEditing(false);
-  };
+    }) 
+    .catch((error) => {
+      console.log(error);
+    });
+    
+    // 로컬에 저장(DB 저장)
+    // localStorage.setItem("todoData", JSON.stringify(tempTodo));
+    };
 
   if (isEditing) {
     // 편집일때 JSX 리턴
