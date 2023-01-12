@@ -15,6 +15,8 @@ const ListItem = React.memo(({ todoData, setTodoData, item, deleteClick }) => {
   // 편집창에는 타이틀이 먼저 작성되어 있어야 하므로 ("")이 아니라 (item.title)
   const [editedTitle, setEditedTitle] = useState(item.title);
 
+  // console.log(item)
+
   // const deleteClick = (id) => {
   //   // 클릭된 ID 와 다른 요소들만 걸러서 새로운 배열 생성
   //   const nowTodo = todoData.filter((item) => item.id !== id);
@@ -55,7 +57,6 @@ const ListItem = React.memo(({ todoData, setTodoData, item, deleteClick }) => {
       .catch((error) => {
         console.log(error);
       });
-  
 
     // 로컬에 저장(DB 저장)
     // localStorage.setItem("todoData", JSON.stringify(updateTodo));
@@ -83,30 +84,74 @@ const ListItem = React.memo(({ todoData, setTodoData, item, deleteClick }) => {
       return item;
     });
 
-
-
     let body = {
       id: todoId,
-      title:editedTitle,
+      title: editedTitle,
       // title: item.title,
-   };
+    };
     // 데이터 갱신
     // axios를 이용해서 mongoDB 단어를 업데이트
-    axios.post("/api/post/updatetitle", body)
-    .then((response)=>{
-      // 응답 결과 출력
-      console.log(response.data)
-      setTodoData(tempTodo);
-      // 목록창으로 이동
-    setIsEditing(false);
-    }) 
-    .catch((error) => {
-      console.log(error);
-    });
-    
+    axios
+      .post("/api/post/updatetitle", body)
+      .then((response) => {
+        // 응답 결과 출력
+        console.log(response.data);
+        setTodoData(tempTodo);
+        // 목록창으로 이동
+        setIsEditing(false);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+
     // 로컬에 저장(DB 저장)
     // localStorage.setItem("todoData", JSON.stringify(tempTodo));
-    };
+  };
+
+  // 날짜 출력
+  // const WEEKDAY = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+  const showTime = (_timestamp) => {
+    const date = new Date(_timestamp);
+
+   // 월 출력
+  let months = date.getMonth();
+  months = months + 1 < 9 ? "0" + (months + 1) : months + 1;
+
+    // 시간 오전, 오후 표시
+    let hours = date.getHours();
+    let ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+
+    // 시간 앞에 0 표시
+    hours = hours + 1 < 9 ? "0" + hours : hours;
+
+    // 분 표시
+    let minutes = date.getMinutes();
+    minutes = minutes < 10 ? "0" + minutes : minutes;
+
+    // 초 표시
+    let second = date.getSeconds();
+    second = second < 10 ? "0" + second : second;
+
+ 
+    let time = date.getFullYear();
+    time += "/";
+    time += months;
+    time += "/";
+    time += date.getDate();
+    // time += ":"
+    // time += WEEKDAY[date.getDay()];
+    time += "  ";
+    time += hours;
+    time += ":";
+    time += minutes;
+    time += ":";
+    time += second;
+    time += "  ";
+    time += ampm;
+    return time;
+  };
 
   if (isEditing) {
     // 편집일때 JSX 리턴
@@ -147,6 +192,8 @@ const ListItem = React.memo(({ todoData, setTodoData, item, deleteClick }) => {
         </div>
 
         <div className="items-center">
+          <span>{showTime(item.id)}</span>
+
           <button
             className="px-4 py-2"
             onClick={() => {
