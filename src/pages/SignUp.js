@@ -78,6 +78,7 @@ const SignUp = () => {
               .then((response) => {
                 // console.log(response.data);
                 if (response.data.success) {
+                  firebase.auth().signOut();
                   // 회원정보 저장 성공
                   alert("콩그레이츄레이션^.^");
                   navigate("/login");

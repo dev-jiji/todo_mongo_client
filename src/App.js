@@ -15,6 +15,7 @@ import Todo from "./pages/Todo";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import NotFound from "./pages/NotFound";
+import UserInfo from "./pages/UserInfo";
 
 export default function App() {
   // action 보내서 store.user.state를 업데이트
@@ -57,6 +58,7 @@ export default function App() {
           <Route path="/todo" element={<Todo />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/userinfo" element={<UserInfo />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
