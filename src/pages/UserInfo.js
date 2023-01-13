@@ -5,14 +5,18 @@ import SignUpDiv from "../styles/signUpCss";
 // firebase 기본 코드를 포함
 import firebase from "../firebase";
 import axios from "axios";
+// user 정보 업데이트
+import { useDispatch } from "react-redux";
 // user 정보 가져오기
 import { useSelector } from "react-redux";
+import { loginUser, clearUser } from "../reducer/userSlice";
 
 const UserInfo = () => {
-    // 사용자 정보 수정을 위해서 정보를 가지고 옴.
+  // 사용자 정보 수정을 위해서 정보를 가지고 옴.
+  const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
 
-//   firebase 사용자 인증 정보
+  //   firebase 사용자 인증 정보
   const fireUser = firebase.auth();
 
   const [email, setEmail] = useState("");
@@ -82,14 +86,50 @@ const UserInfo = () => {
         displayName: nickName,
       })
       .then(() => {
-        alert("닉네임을 변경하였습니다.");
-        setNickName(nickName);
+     
+
+        let body = {
+          email: email,
+          displayName: nickName,
+          uid: user.uid,
+        };
+
+        axios
+        .post("/api/user/update", body)
+        .then((response) => {
+          // 서버에 사용자 닉네임을 변경한다.
+          // 변경하고 나서  dispatch 보내주는 것으로 수정
+          // 실제 사용자 화면 및 userSlice state 정보 업데이트
+          if (response.data.success) {
+            alert("정보가 업데이트 되었습니다.");
+            const userInfo = {
+              displayName: nickName,
+              uid: user.uid,
+              accessToken: user.accessToken,
+              email: email,
+            };
+            dispatch(loginUser(userInfo));
+            setNickName(nickName);
+          } else {
+            alert("정보 업데이트가 실패하였습니다.");
+          }
+        })
+        .catch((error) => {
+          // alert("서버가 불안정하게 연결하였습니다.")
+          console.log(error);
+        });
+
+      
       })
       .catch((error) => {
         // 로그인 실패
         const errorCode = error.code;
         const errorMessage = error.message;
         console.log(errorCode, errorMessage);
+        alert("서버가 불안정하게 연결하였습니다.\n다시 로그인 해주세요.");
+        firebase.auth().signOut();
+        dispatch(clearUser());
+        navigate("/login");
       });
   };
   // 이메일 변경요청
@@ -99,18 +139,54 @@ const UserInfo = () => {
     if (!email) {
       return alert("이메일을 입력하세요.");
     }
-//  firebase 이메일 변경 요청
+    //  firebase 이메일 변경 요청
     fireUser.currentUser
       .updateEmail(email)
       .then(() => {
-        alert("이메일을 변경하였습니다.");
-        setEmail(email);
+        let body = {
+          email: email,
+          displayName: nickName,
+          uid: user.uid,
+        };
+
+        axios
+          .post("/api/user/update", body)
+          .then((response) => {
+            // 서버에 사용자 이메일을 변경한다.
+            // 변경하고 나서  dispatch 보내주는 것으로 수정
+            // 실제 사용자 화면 및 userSlice state 정보 업데이트
+            if (response.data.success) {
+              alert("정보가 업데이트 되었습니다.");
+              const userInfo = {
+                displayName: nickName,
+                uid: user.uid,
+                accessToken: user.accessToken,
+                email: email,
+              };
+              dispatch(loginUser(userInfo));
+              setEmail(email);
+            } else {
+              alert("정보 업데이트가 실패하였습니다.");
+            }
+          })
+          .catch((error) => {
+            // alert("서버가 불안정하게 연결하였습니다.")
+            console.log(error);
+          });
+
+       
       })
       .catch((error) => {
         // 로그인 실패
         const errorCode = error.code;
         const errorMessage = error.message;
         console.log(errorCode, errorMessage);
+
+        alert("서버가 불안정하게 연결하였습니다.\n다시 로그인 해주세요.");
+        firebase.auth().signOut();
+        dispatch(clearUser());
+        navigate("/login");
+        // 에러가 나면 무조건 로그아웃 시키고 로그인으로 보내는 코드
       });
   };
   // 비밀번호 변경요청
@@ -139,6 +215,11 @@ const UserInfo = () => {
         const errorCode = error.code;
         const errorMessage = error.message;
         console.log(errorCode, errorMessage);
+
+        alert("서버가 불안정하게 연결하였습니다.\n다시 로그인 해주세요.");
+        firebase.auth().signOut();
+        dispatch(clearUser());
+        navigate("/login");
       });
   };
   // 회원 탈퇴
@@ -158,7 +239,9 @@ const UserInfo = () => {
           .then((response) => {
             if (response.data.success) {
               alert("회원 탈퇴하였습니다.");
+
               // 회원정보 삭제 성공
+              dispatch(clearUser());
               navigate("/login");
             } else {
               // 회원정보 삭제 실패

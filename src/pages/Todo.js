@@ -90,9 +90,11 @@ const Todo = () => {
   // 전체 목록 호출 메서드
   const getList = (_word = "", _stIndex = 0) => {
     setSkip(0);
-    setSkipToggle(true);
-    // 로딩창 보여주기
+     // 로딩창 보여주기
     setLoading(true);
+
+     // 처음에 버튼 안보이게 처리
+     setSkipToggle(false);
 
     const body = {
       sort: sort,
@@ -111,9 +113,13 @@ const Todo = () => {
           setTodoData(response.data.initTodo);
           // 시작하는 skip 번호를 갱신한다.
           setSkip(response.data.initTodo.length);
-          if (response.data.initTodo.length < 5) {
-            setSkipToggle(false);
+
+          // 목록을 DB 에서 호출하면 전체 등록글 수를 받아서
+          // 비교한다.
+          if (response.data.total > 5) {
+            setSkipToggle(true);
           }
+
         }
 
         // 로딩창 숨기기
@@ -123,6 +129,7 @@ const Todo = () => {
         console.log(error);
       });
   };
+  
   // 더보기 버튼눌렀을 때만 실행됨.
   const getListGo = (_word = "", _stIndex = 0) => {
     // 로딩창 보여주기
